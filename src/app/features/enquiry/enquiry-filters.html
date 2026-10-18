@@ -1,0 +1,68 @@
+<form class="filters" [formGroup]="form" (ngSubmit)="apply()">
+  <div class="form-grid">
+    <div class="field">
+      <label for="filter-status">Status</label
+      ><select id="filter-status" formControlName="statusId">
+        <option value="">All statuses</option>
+        @for (item of statuses(); track item.id) {
+          <option [value]="item.id">{{ item.name }}</option>
+        }
+      </select>
+    </div>
+    <div class="field">
+      <label for="filter-category">Category</label
+      ><select id="filter-category" formControlName="categoryId">
+        <option value="">All categories</option>
+        @for (item of categories(); track item.id) {
+          <option [value]="item.id">{{ item.name }}</option>
+        }
+      </select>
+    </div>
+    <div class="field">
+      <label for="filter-priority">Priority</label
+      ><select id="filter-priority" formControlName="priority">
+        <option value="">All priorities</option>
+        @for (item of options().priorities; track item) {
+          <option [value]="item">{{ item }}</option>
+        }
+      </select>
+    </div>
+    <div class="field">
+      <label for="filter-source">Source</label
+      ><select id="filter-source" formControlName="source">
+        <option value="">All sources</option>
+        @for (item of options().sources; track item) {
+          <option [value]="item">{{ item }}</option>
+        }
+      </select>
+    </div>
+    <div class="field">
+      <label for="filter-from">Created date from</label
+      ><input id="filter-from" type="date" formControlName="from" />
+    </div>
+    <div class="field">
+      <label for="filter-to">Created date to</label
+      ><input id="filter-to" type="date" formControlName="to" />
+    </div>
+    <div class="field">
+      <label for="filter-follow-up">Follow-up date</label
+      ><input id="filter-follow-up" type="date" formControlName="followUp" />
+    </div>
+    <div class="field">
+      <label for="filter-customer">Customer</label
+      ><label class="search-control"><app-svg-icon name="search" /><input
+        id="filter-customer"
+        type="search"
+        formControlName="customer"
+        placeholder="Customer name"
+      /></label>
+    </div>
+  </div>
+  @if (error()) {
+    <p class="field-error mt" role="alert">{{ error() }}</p>
+  }
+  <div class="actions">
+    <button type="submit" class="btn btn-primary">Apply filters</button
+    ><button type="button" class="btn" (click)="clear()">Clear filters</button>
+  </div>
+</form>

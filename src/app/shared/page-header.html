@@ -1,0 +1,29 @@
+@if (backLink() || parents().length) {
+  <div class="page-navigation">
+    @if (backLink()) {
+      <a class="back-link" [routerLink]="backLink()" (click)="navigated.emit()"><app-svg-icon name="back" /> Back</a>
+    }
+    @if (parents().length) {
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <ol>
+          @for (parent of parents(); track parent.url) {
+            <li>
+              <a [routerLink]="parent.url" (click)="navigated.emit()">{{ parent.label }}</a>
+            </li>
+          }
+        </ol>
+      </nav>
+    }
+  </div>
+}
+<div class="page-heading">
+  <div>
+    @if (compact()) {
+      <h2 [attr.id]="headingId()">{{ title() }}</h2>
+    } @else {
+      <h1 [attr.id]="headingId()">{{ title() }}</h1>
+    }
+    <p>{{ description() }}</p>
+  </div>
+  <div class="page-actions"><ng-content /></div>
+</div>

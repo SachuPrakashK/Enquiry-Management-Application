@@ -1,0 +1,59 @@
+<app-side-drawer [open]="opened()" [title]="editing() ? 'Edit follow-up' : 'Add follow-up'" [subtitle]="enquiry()?.customerName || ''" [loading]="store.saving()" (closed)="close()">
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <div class="dialog-body">
+      @if (store.error()) {
+        <div class="alert mt" role="alert">{{ store.error() }}</div>
+      }
+      @if (dateError()) {
+        <div class="alert mt" role="alert">{{ dateError() }}</div>
+      }
+      <div class="form-grid mt">
+        <div class="field">
+          <label for="followUpDate">Follow-up date <span class="required">*</span></label
+          ><input id="followUpDate" type="date" formControlName="followUpDate" /><app-field-error
+            [control]="form.controls.followUpDate"
+            label="Follow-up date"
+          />
+        </div>
+        <div class="field">
+          <label for="followUpType">Type <span class="required">*</span></label
+          ><select id="followUpType" formControlName="followUpType">
+            @for (type of store.options().followUpTypes; track type) {
+              <option [value]="type">{{ type }}</option>
+            }</select
+          ><app-field-error [control]="form.controls.followUpType" label="Type" />
+        </div>
+        <div class="field span-2">
+          <label for="followUpNotes">Notes <span class="required">*</span></label
+          ><textarea
+            id="followUpNotes"
+            formControlName="notes"
+            maxlength="5000"
+            placeholder="What did you discuss?"
+          ></textarea
+          ><app-field-error [control]="form.controls.notes" label="Notes" />
+        </div>
+        <div class="field span-2">
+          <label for="outcome">Outcome <span class="required">*</span></label
+          ><input
+            id="outcome"
+            formControlName="outcome"
+            maxlength="1000"
+            placeholder="E.g. Proposal shared, awaiting feedback"
+          /><app-field-error [control]="form.controls.outcome" label="Outcome" />
+        </div>
+        <div class="field span-2">
+          <label for="nextFollowUp">Next follow-up date</label
+          ><input id="nextFollowUp" type="date" formControlName="nextFollowUpDate" /><small
+            >Leave empty when no further follow-up is needed. The most recent history entry
+            determines the enquiry schedule.</small
+          >
+        </div>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button type="button" class="btn" [disabled]="store.saving()" (click)="close()">Cancel</button
+      ><button type="submit" class="btn btn-primary" [disabled]="store.saving()">@if (store.saving()) { <app-button-loader /> Saving... } @else { Save follow-up }</button>
+    </div>
+  </form>
+</app-side-drawer>

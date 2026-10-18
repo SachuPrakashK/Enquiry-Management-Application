@@ -1,0 +1,82 @@
+<app-page-header [title]="title" [description]="description"
+  ><a class="btn btn-primary" [routerLink]="['/admin', kind, 'create']"
+    ><app-svg-icon name="plus" /> Add {{ singular }}</a
+  ></app-page-header
+>
+@if (store.error()) {
+  <div class="alert" role="alert">
+    {{ store.error() }} <button class="btn btn-sm" (click)="load()">Retry</button>
+  </div>
+}
+<section class="card">
+  <div class="toolbar">
+    <div>
+      <h2>All {{ kind }}</h2>
+      <small>{{ store.items().length }} records in your workspace</small>
+    </div>
+    <label class="search-control"><app-svg-icon name="search" /><input
+      class="search-input"
+      type="search"
+      [formControl]="search"
+      [attr.aria-label]="'Search ' + kind"
+      placeholder="Search by name or code…"
+    /></label>
+  </div>
+  @if (store.loading()) {
+    <div class="loading" role="status"><span class="spinner"></span>Loading {{ kind }}…</div>
+  } @else if (filtered().length) {
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Code</th>
+            <th>Description</th>
+            <th>State</th>
+            <th>Created</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of filtered(); track item.id) {
+            <tr>
+              <td>
+                @if (asStatus(item); as status) {
+                  <app-badge [status]="status" />
+                } @else {
+                  <strong>{{ item.name }}</strong>
+                }
+              </td>
+              <td>{{ item.code }}</td>
+              <td>
+                <span class="cell-title" [title]="item.description">{{
+                  item.description || '—'
+                }}</span>
+              </td>
+              <td><app-badge [label]="item.isActive ? 'Active' : 'Inactive'" /></td>
+              <td>{{ item.createdAt | date: 'dd MMM yyyy' }}</td>
+              <td>
+                <app-action-menu [id]="kind + '-' + item.id" [label]="'Actions for ' + item.name">
+                  <a role="menuitem" [routerLink]="['/admin', kind, item.id, 'edit']"><app-svg-icon name="edit" /> Edit</a>
+                  <button role="menuitem" [disabled]="store.saving()" (click)="toggle(item)"><app-svg-icon name="status" /> {{ item.isActive ? 'Deactivate' : 'Activate' }}</button>
+                  <button role="menuitem" class="danger-text" [disabled]="store.saving()" (click)="askDelete(item)"><app-svg-icon name="delete" /> Delete</button>
+                </app-action-menu>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  } @else {
+    <app-empty-state [title]="query() ? 'No matching records found' : 'No data found'" [description]="query() ? 'Try changing your search.' : 'There are no records to display.'" />
+  }
+</section>
+<p class="muted mt">
+  Records used by enquiries cannot be deleted. Deactivate them to keep your history intact.
+</p>
+<app-confirm-dialog
+  [error]="store.error()"
+  [busy]="store.saving()"
+  [message]="'Delete ' + (deleting()?.name || 'this record') + '? This action cannot be undone.'"
+  (confirmed)="delete()"
+/>

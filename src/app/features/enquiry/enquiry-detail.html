@@ -1,0 +1,183 @@
+<app-page-header
+  [title]="store.selectedItem()?.referenceNumber || 'Enquiry details'"
+  backLink="/admin/enquiries"
+  [parents]="parents"
+  description="Customer details, enquiry information, and conversation history."
+>
+  @if (store.selectedItem()) {
+    <a class="btn btn-primary" [routerLink]="['/admin/enquiries', id, 'edit']">Edit enquiry</a>
+  }
+</app-page-header>
+@if (store.error()) {
+  <div class="alert" role="alert">
+    {{ store.error() }} <button class="btn btn-sm" (click)="load()">Retry</button>
+  </div>
+}
+@if (store.loading()) {
+  <div class="loading" role="status"><span class="spinner"></span>Loading enquiry…</div>
+} @else if (store.selectedItem(); as item) {
+  <div class="actions mb">
+    <button class="btn" [disabled]="store.saving()" (click)="statusDialog.open(item)">
+      Change status</button
+    ><button
+      class="btn btn-primary"
+      [disabled]="store.saving()"
+      (click)="followUpDialog.open(item)"
+    >
+      <app-svg-icon name="plus" /> Add follow-up
+    </button>
+  </div>
+  <div class="split">
+    <div class="stack">
+      <section class="card">
+        <div class="card-header">
+          <h2>Enquiry information</h2>
+          <app-badge [status]="store.statusMap().get(item.statusId)" />
+        </div>
+        <div class="card-body">
+          <h2>{{ item.subject }}</h2>
+          <p class="pre-wrap mt">{{ item.message }}</p>
+          <dl class="detail-grid mt">
+            <div>
+              <dt>Reference number</dt>
+              <dd>{{ item.referenceNumber }}</dd>
+            </div>
+            <div>
+              <dt>Category</dt>
+              <dd>{{ store.categoryMap().get(item.categoryId)?.name }}</dd>
+            </div>
+            <div>
+              <dt>Priority</dt>
+              <dd><app-badge [label]="item.priority" /></dd>
+            </div>
+            <div>
+              <dt>Source</dt>
+              <dd>{{ item.source }}</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+      <section class="card">
+        <div class="card-header">
+          <h2>Follow-up history</h2>
+          <small>New</small>
+        </div>
+        <div class="card-body">
+          @for (followUp of store.history(); track followUp.id) {
+            <article class="timeline-item">
+              <strong>{{ followUp.followUpType }}</strong
+              ><small> · {{ followUp.followUpDate | date: 'dd MMM yyyy' }}</small>
+              <p class="pre-wrap">{{ followUp.notes }}</p>
+              <p><strong>Outcome:</strong> {{ followUp.outcome }}</p>
+              <small
+                >Next follow-up:
+                {{
+                  followUp.nextFollowUpDate
+                    ? (followUp.nextFollowUpDate | date: 'dd MMM yyyy')
+                    : 'None scheduled'
+                }}</small
+              >
+              <div class="actions mt">
+                <button
+                  class="btn btn-text btn-icon"
+                  aria-label="Edit follow-up"
+                  title="Edit follow-up"
+                  [disabled]="store.saving()"
+                  (click)="followUpDialog.open(item, followUp)"
+                >
+                  <app-svg-icon name="edit" /></button
+                ><button
+                  class="btn btn-text btn-icon danger-text"
+                  aria-label="Delete follow-up"
+                  title="Delete follow-up"
+                  [disabled]="store.saving()"
+                  (click)="askDelete(followUp)"
+                >
+                  <app-svg-icon name="delete" />
+                </button>
+              </div>
+            </article>
+          } @empty {
+            <p class="muted">No follow-ups recorded yet.</p>
+          }
+        </div>
+      </section>
+    </div>
+    <div class="stack">
+      <section class="card">
+        <div class="card-header">
+          <h2>Customer information</h2>
+          <span class="avatar">{{ item.customerName.slice(0, 2).toUpperCase() }}</span>
+        </div>
+        <div class="card-body">
+          <dl class="detail-grid">
+            <div class="span-2">
+              <dt>Customer</dt>
+              <dd>
+                <strong>{{ item.customerName }}</strong>
+              </dd>
+            </div>
+            <div class="span-2">
+              <dt>Email</dt>
+              <dd>
+                <a [href]="'mailto:' + item.email">{{ item.email }}</a>
+              </dd>
+            </div>
+            <div>
+              <dt>Phone</dt>
+              <dd>
+                <a [href]="'tel:' + item.phone">{{ item.phone }}</a>
+              </dd>
+            </div>
+            <div>
+              <dt>Company</dt>
+              <dd>{{ item.companyName || '—' }}</dd>
+            </div>
+            <div class="span-2">
+              <dt>Preferred contact method</dt>
+              <dd>{{ item.preferredContactMethod }}</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+      <section class="card">
+        <div class="card-header"><h2>Follow-up schedule</h2></div>
+        <div class="card-body">
+          <small>Next follow-up date</small>
+          <h2 class="mt">
+            {{
+              item.nextFollowUpDate
+                ? (item.nextFollowUpDate | date: 'EEEE, dd MMM yyyy')
+                : 'No follow-up scheduled'
+            }}
+          </h2>
+        </div>
+      </section>
+      <section class="card">
+        <div class="card-header"><h2>Additional information</h2></div>
+        <div class="card-body">
+          <small>Internal notes</small>
+          <p class="pre-wrap mt">{{ item.notes || 'No additional notes.' }}</p>
+          <dl class="detail-grid mt">
+            <div>
+              <dt>Created</dt>
+              <dd>{{ item.createdAt | date: 'dd MMM yyyy, HH:mm' }}</dd>
+            </div>
+            <div>
+              <dt>Last updated</dt>
+              <dd>{{ item.updatedAt | date: 'dd MMM yyyy, HH:mm' }}</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+    </div>
+  </div>
+}
+
+<app-status-dialog #statusDialog /><app-follow-up-dialog #followUpDialog /><app-confirm-dialog
+  title="Delete follow-up?"
+  [error]="store.error()"
+  message="The enquiry schedule will be recalculated from the remaining history."
+  [busy]="store.saving()"
+  (confirmed)="deleteFollowUp()"
+/>

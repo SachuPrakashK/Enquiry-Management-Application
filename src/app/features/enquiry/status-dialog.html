@@ -1,0 +1,26 @@
+<dialog #dialog aria-labelledby="status-dialog-title" (cancel)="cancel($event)">
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <div class="dialog-body">
+      <h2 id="status-dialog-title">Change enquiry status</h2>
+      <p>{{ enquiry()?.referenceNumber }} · {{ enquiry()?.customerName }}</p>
+      @if (store.error()) {
+        <div class="alert mt" role="alert">{{ store.error() }}</div>
+      }
+      <div class="field mt">
+        <label for="change-status">Status <span class="required">*</span></label
+        ><select id="change-status" [formControl]="status">
+          <option value="">Select a status</option>
+          @for (item of statuses(); track item.id) {
+            <option [value]="item.id">
+              {{ item.name }}{{ item.isActive ? '' : ' (inactive)' }}
+            </option>
+          }</select
+        ><app-field-error [control]="status" label="Status" />
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button type="button" class="btn" [disabled]="store.saving()" (click)="close()">Cancel</button
+      ><button type="submit" class="btn btn-primary" [disabled]="store.saving()">@if (store.saving()) { <app-button-loader /> Updating... } @else { Update status }</button>
+    </div>
+  </form>
+</dialog>

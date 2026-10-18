@@ -1,0 +1,89 @@
+<app-page-header
+  title="Follow-ups"
+  description="Keep conversations moving. Know who needs your attention."
+/>
+@if (store.error()) {
+  <div class="alert" role="alert">
+    {{ store.error() }} <button class="btn btn-sm" (click)="load()">Retry</button>
+  </div>
+}
+<section class="card">
+  <div class="tabs" aria-label="Follow-up filters">
+    @for (tab of tabs; track tab) {
+      <button
+        class="btn"
+        [class.active]="selected() === tab"
+        [attr.aria-pressed]="selected() === tab"
+        (click)="selected.set(tab)"
+      >
+        {{ tab }} <span>{{ count(tab) }}</span>
+      </button>
+    }
+  </div>
+  @switch (selected()) {
+    @case ('Completed') {
+      <p class="card-body muted">
+        Enquiries with recorded follow-ups and no next follow-up scheduled.
+      </p>
+    }
+    @case ('Overdue') {
+      <p class="card-body muted">These enquiries have a follow-up date before today.</p>
+    }
+  }
+  @if (store.loading()) {
+    <div class="loading" role="status"><span class="spinner"></span>Loading follow-ups…</div>
+  } @else if (filtered().length) {
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Reference</th>
+            <th>Customer</th>
+            <th>Phone</th>
+            <th>Category</th>
+            <th>Follow-up date</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of filtered(); track item.id) {
+            <tr>
+              <td>
+                <a class="text-link" [routerLink]="['/admin/enquiries', item.id]">{{
+                  item.referenceNumber
+                }}</a>
+              </td>
+              <td>
+                <strong>{{ item.customerName }}</strong
+                ><small>{{ item.companyName }}</small>
+              </td>
+              <td>{{ item.phone }}</td>
+              <td>{{ store.categoryMap().get(item.categoryId)?.name }}</td>
+              <td>
+                {{
+                  item.nextFollowUpDate
+                    ? (item.nextFollowUpDate | date: 'dd MMM yyyy')
+                    : 'Completed'
+                }}
+              </td>
+              <td><app-badge [status]="store.statusMap().get(item.statusId)" /></td>
+              <td>
+                <app-action-menu [id]="'follow-up-' + item.id" [label]="'Actions for ' + item.referenceNumber">
+                  <a role="menuitem" [routerLink]="['/admin/enquiries', item.id]"><app-svg-icon name="view" /> View history</a>
+                  <button role="menuitem" [disabled]="store.saving()" (click)="followUpDialog.open(item)"><app-svg-icon name="follow-up" /> Add follow-up</button>
+                </app-action-menu>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  } @else {
+    <app-empty-state
+      title="No data found"
+      description="There are no enquiries in this follow-up view."
+    />
+  }
+</section>
+<app-follow-up-dialog #followUpDialog />

@@ -1,0 +1,13 @@
+@if (visible()) {
+  <span class="field-error" role="alert">
+    @if (control().hasError('required')) {
+      {{ label() }} is required.
+    } @else if (control().hasError('email')) {
+      Enter a valid email address.
+    } @else if (control().hasError('maxlength')) {
+      {{ label() }} is too long.
+    } @else {
+      {{ hint() }}
+    }
+  </span>
+}

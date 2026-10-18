@@ -1,0 +1,96 @@
+<div class="app-shell" [class.sidebar-collapsed]="sidebarCollapsed()">
+  <button
+    class="scrim"
+    [class.open]="menuOpen()"
+    aria-label="Close navigation"
+    (click)="menuOpen.set(false)"
+  ></button>
+  <aside class="sidebar" [class.open]="menuOpen()">
+    <div class="sidebar-heading">
+      <a class="brand" routerLink="/admin/dashboard" (click)="menuOpen.set(false)"
+        ><img class="brand-full" src="assets/brand/logo-light.svg" alt="Enquiry Management" /><img
+          class="brand-short"
+          src="assets/brand/logo-icon-light.svg"
+          alt="Enquiry Management"
+      /></a>
+      <button
+        class="sidebar-close"
+        type="button"
+        aria-label="Close navigation"
+        (click)="menuOpen.set(false)"
+      >
+        <app-svg-icon name="close" />
+      </button>
+    </div>
+    <nav class="nav" aria-label="Main navigation">
+      @for (section of sections(); track section.label) {
+        @if (section.label) {
+          <span class="eyebrow">{{ section.label }}</span>
+        }
+        @for (item of section.items; track item.path) {
+          <a
+            [routerLink]="item.path"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: item.path === '/admin/enquiries' }"
+            (click)="menuOpen.set(false)"
+            ><span class="nav-icon"><app-svg-icon [name]="item.icon" /></span
+            ><span class="nav-label">{{ item.label }}</span></a
+          >
+        }
+      }
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="nav">
+        <button type="button" (click)="logout()">
+          <span class="nav-icon"><app-svg-icon name="logout" /></span
+          ><span class="nav-label">Logout</span>
+        </button>
+      </div>
+      <p class="eyebrow">EnquiryDesk · Admin</p>
+    </div>
+  </aside>
+  <div class="main-shell">
+    <header class="topbar">
+      <div class="actions">
+        <button
+          type="button"
+          class="btn mobile-menu"
+          (click)="menuOpen.set(!menuOpen())"
+          [attr.aria-expanded]="menuOpen()"
+          aria-label="Toggle navigation"
+        >
+          <app-svg-icon name="menu" />
+        </button>
+      </div>
+      <div class="admin">
+        <app-action-menu id="header-profile" label="Open profile menu" variant="profile">
+          <span action-trigger class="avatar">
+            @if (profileImage(); as image) {
+              <img [src]="image" [alt]="userName() + ' profile photo'" />
+            } @else if (currentUser()) {
+              {{ userInitials() }}
+            } @else {
+              …
+            }
+          </span
+          ><span action-trigger class="admin-info"
+            ><strong>{{ userName() || 'Loading user…' }}</strong><small>{{ role() }}</small></span
+          ><app-svg-icon action-trigger name="chevron-right" />
+          <a role="menuitem" routerLink="/admin/profile"><app-svg-icon name="profile" /> Profile</a>
+          <button role="menuitem" type="button" (click)="logout()">
+            <app-svg-icon name="logout" /> Logout
+          </button>
+        </app-action-menu>
+      </div>
+    </header>
+    <main class="content"><router-outlet /></main>
+  </div>
+  <button
+    class="sidebar-toggle"
+    type="button"
+    (click)="sidebarCollapsed.set(!sidebarCollapsed())"
+    [attr.aria-label]="sidebarCollapsed() ? 'Expand navigation' : 'Collapse navigation'"
+  >
+    <app-svg-icon [name]="sidebarCollapsed() ? 'chevron-right' : 'chevron-left'" />
+  </button>
+</div>

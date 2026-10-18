@@ -1,0 +1,6 @@
+<div class="action-menu">
+  <button #trigger class="action-menu-trigger" [class.profile-menu-trigger]="variant() === 'profile'" type="button" [attr.aria-label]="label()" [title]="variant() === 'actions' ? 'Actions' : null" [attr.aria-expanded]="open()" aria-haspopup="menu" (click)="toggle($event)">@if (variant() === 'profile') { <ng-content select="[action-trigger]" /> } @else { <app-svg-icon name="more-vertical" /> }</button>
+  @if (open()) {
+    <div class="action-menu-panel" [class.open-above]="above()" role="menu" [style.top.px]="position().top" [style.left.px]="position().left" (click)="select()"><ng-content /></div>
+  }
+</div>

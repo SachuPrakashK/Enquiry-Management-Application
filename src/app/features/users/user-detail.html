@@ -1,0 +1,50 @@
+<app-page-header
+  title="User Details"
+  description="Workspace identity and access information."
+  backLink="/admin/users"
+  [parents]="parents"
+>
+  @if (store.selectedItem()) {
+    <a class="btn btn-primary" [routerLink]="['/admin/users', id, 'edit']">Edit user</a>
+  }
+</app-page-header>
+@if (store.error()) {
+  <div class="alert" role="alert">{{ store.error() }}</div>
+} @else if (store.selectedItem(); as user) {
+  <section class="card">
+    <div class="card-header">
+      <div class="customer-cell">
+        <span class="avatar">@if (user.profileImage) { <img [src]="user.profileImage" alt="" /> } @else { {{ user.firstName[0] }}{{ user.lastName[0] }} }</span>
+        <div>
+          <h2>{{ user.firstName }} {{ user.lastName }}</h2>
+          <small>{{ user.role }}</small>
+        </div>
+      </div>
+      <app-badge [label]="user.isActive ? 'Active' : 'Inactive'" />
+    </div>
+    <div class="card-body">
+      <dl class="detail-grid">
+        <div>
+          <dt>Email</dt>
+          <dd>{{ user.email }}</dd>
+        </div>
+        <div>
+          <dt>Username</dt>
+          <dd>{{ user.username }}</dd>
+        </div>
+        <div>
+          <dt>Role</dt>
+          <dd>{{ user.role }}</dd>
+        </div>
+        <div>
+          <dt>Created</dt>
+          <dd>{{ user.createdAt | date: 'dd MMM yyyy, HH:mm' }}</dd>
+        </div>
+        <div>
+          <dt>Updated</dt>
+          <dd>{{ user.updatedAt | date: 'dd MMM yyyy, HH:mm' }}</dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+}

@@ -1,0 +1,105 @@
+<app-page-header
+  title="Profile"
+  description="Review and update your administrator profile."
+  backLink="/admin/dashboard"
+/>
+@if (store.error()) {
+  <div class="alert" role="alert">{{ store.error() }}</div>
+} @else if (auth.currentUser(); as user) {
+  <div class="split">
+    <section class="card">
+      <div class="card-body">
+        <div class="profile-photo-section">
+          <span class="avatar profile-avatar">
+            @if (photoPreview() || user.profileImage; as image) {
+              <img [src]="image" alt="Profile photo" />
+            } @else {
+              {{ user.firstName[0] }}{{ user.lastName[0] }}
+            }
+          </span>
+          <div>
+            <h2>{{ user.firstName }} {{ user.lastName }}</h2>
+            <p class="muted">{{ user.role }}</p>
+          </div>
+        </div>
+        <div class="photo-actions">
+          <input #photoInput class="sr-only" id="profilePhoto" type="file" accept="image/jpeg,image/png,image/webp" (change)="selectPhoto($event)" />
+          <label class="btn btn-sm" for="profilePhoto"><app-svg-icon name="camera" /> Change photo</label>
+          @if (user.profileImage) {
+            <button class="btn btn-danger btn-sm" type="button" [disabled]="store.saving()" (click)="photoDeleteDialog.open()">
+              <app-svg-icon name="delete" /> Delete
+            </button>
+          }
+          @if (photoPreview()) {
+            <button class="btn btn-primary btn-sm" type="button" [disabled]="store.saving()" (click)="savePhoto()">@if (store.saving()) { <app-button-loader /> Updating... } @else { Update photo }</button>
+            <button class="btn btn-text btn-sm" type="button" [disabled]="store.saving()" (click)="cancelPhoto()">Cancel</button>
+          }
+        </div>
+        @if (photoError()) { <p class="field-error" role="alert">{{ photoError() }}</p> }
+        <dl class="detail-grid mt">
+          <div>
+            <dt>Email</dt>
+            <dd>{{ user.email }}</dd>
+          </div>
+          <div>
+            <dt>Username</dt>
+            <dd>{{ user.username }}</dd>
+          </div>
+        </dl>
+      </div>
+    </section>
+    <form class="card" [formGroup]="form" (ngSubmit)="submit()">
+      <div class="form-section">
+        <h2>Edit profile</h2>
+        <div class="form-grid">
+          <div class="field">
+            <label for="profileFirst">First name <span class="required">*</span></label
+            ><input id="profileFirst" formControlName="firstName" /><app-field-error
+              [control]="form.controls.firstName"
+              label="First name"
+            />
+          </div>
+          <div class="field">
+            <label for="profileLast">Last name <span class="required">*</span></label
+            ><input id="profileLast" formControlName="lastName" /><app-field-error
+              [control]="form.controls.lastName"
+              label="Last name"
+            />
+          </div>
+          <div class="field">
+            <label for="profileEmail">Email <span class="required">*</span></label
+            ><input id="profileEmail" type="email" formControlName="email" /><app-field-error
+              [control]="form.controls.email"
+              label="Email"
+            />
+          </div>
+          <div class="field">
+            <label for="profileUsername">Username <span class="required">*</span></label
+            ><input id="profileUsername" formControlName="username" /><app-field-error
+              [control]="form.controls.username"
+              label="Username"
+            />
+          </div>
+          <div class="field">
+            <label for="profileRole">Role</label
+            ><input id="profileRole" [value]="user.role" disabled />
+          </div>
+        </div>
+      </div>
+      <div class="form-footer">
+        <button class="btn btn-primary" [disabled]="store.saving()">@if (store.saving()) { <app-button-loader /> Saving... } @else { Update profile }</button>
+      </div>
+    </form>
+  </div>
+} @else {
+  <section class="card"><div class="card-body muted">Loading profile…</div></section>
+}
+<app-confirm-dialog
+  #photoDeleteDialog
+  title="Remove profile image?"
+  message="Are you sure you want to remove your profile image?"
+  confirmText="Remove"
+  [busy]="store.saving()"
+  [error]="store.error()"
+  (confirmed)="deletePhoto()"
+/>

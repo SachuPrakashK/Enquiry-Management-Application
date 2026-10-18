@@ -1,0 +1,20 @@
+<router-outlet />
+<app-global-loader />
+<div class="toast-region" aria-live="polite">
+  @for (message of toasts.messages(); track message.id) {
+    <div
+      class="toast"
+      [class]="'toast ' + message.type"
+      [attr.role]="message.type === 'error' ? 'alert' : 'status'"
+    >
+      <span>{{ message.text }}</span
+      ><button
+        class="btn btn-text btn-sm"
+        (click)="toasts.dismiss(message.id)"
+        aria-label="Dismiss notification"
+      >
+        <app-svg-icon name="close" />
+      </button>
+    </div>
+  }
+</div>
