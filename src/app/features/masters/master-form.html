@@ -1,0 +1,62 @@
+<app-side-drawer [open]="true" [title]="(id ? 'Edit ' : 'Create ') + singular" subtitle="Keep your master data clear and consistent." [loading]="store.saving()" (closed)="close()">
+@if (store.error()) {
+  <div class="alert" role="alert">{{ store.error() }}</div>
+}
+@if (store.loading()) {
+  <div class="loading" role="status">Loading record…</div>
+} @else if (!id || store.selectedItem()) {
+  <form class="card" [formGroup]="form" (ngSubmit)="submit()">
+    <div class="form-section">
+      <h2>{{ singular }} information</h2>
+      <div class="form-grid">
+        <div class="field">
+          <label for="name">Name <span class="required">*</span></label
+          ><input
+            id="name"
+            formControlName="name"
+            maxlength="100"
+            placeholder="Enter a name"
+          /><app-field-error [control]="form.controls.name" label="Name" />
+        </div>
+        <div class="field">
+          <label for="code">Code <span class="required">*</span></label
+          ><input
+            id="code"
+            formControlName="code"
+            maxlength="40"
+            placeholder="E.g. WEB_DEVELOPMENT"
+          /><app-field-error
+            [control]="form.controls.code"
+            label="Code"
+            hint="Use 2–40 uppercase letters, numbers or underscores."
+          />
+        </div>
+        <div class="field span-2">
+          <label for="description">Description</label
+          ><textarea
+            id="description"
+            formControlName="description"
+            maxlength="500"
+            placeholder="A short description"
+          ></textarea>
+        </div>
+        @if (kind === 'statuses') {
+          <div class="field">
+            <label for="color">Status color <span class="required">*</span></label
+            ><input id="color" type="color" formControlName="color" />
+          </div>
+        }
+        <div class="field">
+          <label class="check-label" for="isActive"
+            ><input id="isActive" type="checkbox" formControlName="isActive" />Active</label
+          ><small>Active records are available for new enquiries.</small>
+        </div>
+      </div>
+    </div>
+    <div class="form-footer">
+      <a class="btn" [routerLink]="['/admin', kind]">Cancel</a
+      ><button type="submit" class="btn btn-primary" [disabled]="store.saving()">@if (store.saving()) { <app-button-loader /> Saving... } @else { Save {{ singular }} }</button>
+    </div>
+  </form>
+}
+</app-side-drawer>

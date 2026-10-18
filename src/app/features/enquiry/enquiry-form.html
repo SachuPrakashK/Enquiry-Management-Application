@@ -1,0 +1,164 @@
+<app-side-drawer [open]="true" [title]="id ? 'Edit Enquiry' : 'Make Enquiry'" [subtitle]="id ? 'Update this customer enquiry.' : 'Capture a new customer enquiry.'" width="enquiry" [loading]="store.saving()" (closed)="close()">
+@if (store.error()) {
+  <div class="alert" role="alert">
+    {{ store.error() }}
+    @if (!store.saving()) {
+      <button class="btn btn-sm" type="button" (click)="load()">Reload data</button>
+    }
+  </div>
+}
+@if (store.loading()) {
+  <div class="loading" role="status"><span class="spinner"></span>Loading enquiry data…</div>
+} @else if ((!id || store.selectedItem()) && store.options().priorities.length) {
+  <form class="card" [formGroup]="form" (ngSubmit)="submit()">
+    <section class="form-section">
+      <h2>Customer information</h2>
+      <div class="form-grid">
+        <div class="field">
+          <label for="customerName">Customer name <span class="required">*</span></label
+          ><input
+            id="customerName"
+            formControlName="customerName"
+            autocomplete="name"
+            maxlength="100"
+            placeholder="Full name"
+          /><app-field-error [control]="form.controls.customerName" label="Customer name" />
+        </div>
+        <div class="field">
+          <label for="companyName">Company name</label
+          ><input
+            id="companyName"
+            formControlName="companyName"
+            autocomplete="organization"
+            maxlength="150"
+            placeholder="Company or organization"
+          />
+        </div>
+        <div class="field">
+          <label for="email">Email address <span class="required">*</span></label
+          ><input
+            id="email"
+            type="email"
+            formControlName="email"
+            autocomplete="email"
+            maxlength="254"
+            placeholder="name@company.com"
+          /><app-field-error [control]="form.controls.email" label="Email" />
+        </div>
+        <div class="field">
+          <label for="phone">Phone number <span class="required">*</span></label
+          ><input
+            id="phone"
+            type="tel"
+            formControlName="phone"
+            autocomplete="tel"
+            placeholder="+1 (415) 555-0100"
+          /><app-field-error
+            [control]="form.controls.phone"
+            label="Phone"
+            hint="Enter 7–20 characters using digits and standard phone punctuation."
+          />
+        </div>
+      </div>
+    </section>
+    <section class="form-section">
+      <h2>Enquiry information</h2>
+      <div class="form-grid">
+        <div class="field">
+          <label for="categoryId">Enquiry category <span class="required">*</span></label
+          ><select id="categoryId" formControlName="categoryId">
+            <option value="">Select a category</option>
+            @for (item of categories(); track item.id) {
+              <option [value]="item.id">
+                {{ item.name }}{{ item.isActive ? '' : ' (inactive)' }}
+              </option>
+            }</select
+          ><app-field-error [control]="form.controls.categoryId" label="Category" />
+          @if (!categories().length) {
+            <small>Create an active category before adding an enquiry.</small>
+          }
+        </div>
+        <div class="field">
+          <label for="statusId">Status <span class="required">*</span></label
+          ><select id="statusId" formControlName="statusId">
+            <option value="">Select a status</option>
+            @for (item of statuses(); track item.id) {
+              <option [value]="item.id">
+                {{ item.name }}{{ item.isActive ? '' : ' (inactive)' }}
+              </option>
+            }</select
+          ><app-field-error [control]="form.controls.statusId" label="Status" />
+        </div>
+        <div class="field span-2">
+          <label for="subject">Subject <span class="required">*</span></label
+          ><input
+            id="subject"
+            formControlName="subject"
+            maxlength="200"
+            placeholder="What can we help with?"
+          /><app-field-error [control]="form.controls.subject" label="Subject" />
+        </div>
+        <div class="field span-2">
+          <label for="message">Message <span class="required">*</span></label
+          ><textarea
+            id="message"
+            formControlName="message"
+            maxlength="5000"
+            rows="5"
+            placeholder="Describe the customer's requirements…"
+          ></textarea
+          ><app-field-error [control]="form.controls.message" label="Message" />
+        </div>
+        <div class="field">
+          <label for="priority">Priority <span class="required">*</span></label
+          ><select id="priority" formControlName="priority">
+            @for (item of store.options().priorities; track item) {
+              <option [value]="item">{{ item }}</option>
+            }</select
+          ><app-field-error [control]="form.controls.priority" label="Priority" />
+        </div>
+        <div class="field">
+          <label for="source">Source <span class="required">*</span></label
+          ><select id="source" formControlName="source">
+            @for (item of store.options().sources; track item) {
+              <option [value]="item">{{ item }}</option>
+            }</select
+          ><app-field-error [control]="form.controls.source" label="Source" />
+        </div>
+        <div class="field">
+          <label for="preferredContactMethod">Preferred contact method <span class="required">*</span></label
+          ><select id="preferredContactMethod" formControlName="preferredContactMethod">
+            @for (item of store.options().contactMethods; track item) {
+              <option [value]="item">{{ item }}</option>
+            }</select
+          ><app-field-error
+            [control]="form.controls.preferredContactMethod"
+            label="Contact method"
+          />
+        </div>
+        <div class="field">
+          <label for="nextFollowUpDate">Next follow-up date</label
+          ><input id="nextFollowUpDate" type="date" formControlName="nextFollowUpDate" />
+        </div>
+      </div>
+    </section>
+    <section class="form-section">
+      <h2>Additional information</h2>
+      <div class="field">
+        <label for="notes">Internal notes</label
+        ><textarea
+          id="notes"
+          formControlName="notes"
+          maxlength="5000"
+          placeholder="Helpful context for your team…"
+        ></textarea
+        ><small>Notes are part of your admin record.</small>
+      </div>
+    </section>
+    <div class="form-footer">
+      <a class="btn" routerLink="/admin/enquiries">Cancel</a
+      ><button type="submit" class="btn btn-primary" [disabled]="store.saving()">@if (store.saving()) { <app-button-loader /> {{ id ? 'Updating...' : 'Creating...' }} } @else { {{ id ? 'Save changes' : 'Create enquiry' }} }</button>
+    </div>
+  </form>
+}
+</app-side-drawer>

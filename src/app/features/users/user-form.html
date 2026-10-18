@@ -1,0 +1,75 @@
+<app-side-drawer [open]="true" [title]="id ? 'Edit User' : 'Create User'" subtitle="Set workspace identity, role, and access." [loading]="store.saving()" (closed)="close()">
+@if (store.error()) {
+  <div class="alert" role="alert">{{ store.error() }}</div>
+}
+@if (store.loading()) {
+  <div class="loading"><span class="spinner"></span>Loading user…</div>
+} @else if (!id || store.selectedItem()) {
+  <form class="card" [formGroup]="form" (ngSubmit)="submit()">
+    <div class="form-section">
+      <h2>User information</h2>
+      <div class="form-grid">
+        <div class="field">
+          <label for="firstName">First name <span class="required">*</span></label
+          ><input id="firstName" formControlName="firstName" /><app-field-error
+            [control]="form.controls.firstName"
+            label="First name"
+          />
+        </div>
+        @if (!id) {
+          <div class="field">
+            <label for="userPassword">Password <span class="required">*</span></label>
+            <input id="userPassword" type="password" formControlName="password" autocomplete="new-password" />
+            <app-field-error [control]="form.controls.password" label="Password" hint="Use at least 8 characters with uppercase, lowercase, number, and special character." />
+            <small>At least 8 characters with uppercase, lowercase, number, and special character.</small>
+          </div>
+          <div class="field">
+            <label for="userConfirmPassword">Confirm password <span class="required">*</span></label>
+            <input id="userConfirmPassword" type="password" formControlName="confirmPassword" autocomplete="new-password" />
+            <app-field-error [control]="form.controls.confirmPassword" label="Confirm password" />
+            @if (form.hasError('passwordMismatch') && form.controls.confirmPassword.touched) { <span class="field-error" role="alert">Passwords must match.</span> }
+          </div>
+        }
+        <div class="field">
+          <label for="lastName">Last name <span class="required">*</span></label
+          ><input id="lastName" formControlName="lastName" /><app-field-error
+            [control]="form.controls.lastName"
+            label="Last name"
+          />
+        </div>
+        <div class="field">
+          <label for="userEmail">Email <span class="required">*</span></label
+          ><input id="userEmail" type="email" formControlName="email" /><app-field-error
+            [control]="form.controls.email"
+            label="Email"
+          />
+        </div>
+        <div class="field">
+          <label for="userName">Username <span class="required">*</span></label
+          ><input id="userName" formControlName="username" /><app-field-error
+            [control]="form.controls.username"
+            label="Username"
+          />
+        </div>
+        <div class="field">
+          <label for="role">Role <span class="required">*</span></label
+          ><select id="role" formControlName="role">
+            @for (role of roles; track role) {
+              <option [value]="role">{{ role }}</option>
+            }
+          </select>
+        </div>
+        <div class="field">
+          <label class="check-label"
+            ><input type="checkbox" formControlName="isActive" />Active</label
+          >
+        </div>
+      </div>
+    </div>
+    <div class="form-footer">
+      <a class="btn" routerLink="/admin/users">Cancel</a
+      ><button class="btn btn-primary" type="submit" [disabled]="store.saving()">@if (store.saving()) { <app-button-loader /> Saving... } @else { {{ id ? 'Save changes' : 'Create user' }} }</button>
+    </div>
+  </form>
+}
+</app-side-drawer>

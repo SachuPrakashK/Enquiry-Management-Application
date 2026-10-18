@@ -1,0 +1,21 @@
+<dialog #dialog (cancel)="cancel($event)" aria-labelledby="confirm-title">
+  <div class="dialog-body">
+    <h2 id="confirm-title">{{ title() }}</h2>
+    <p>{{ message() }}</p>
+    @if (error()) {
+      <div class="alert mt" role="alert">{{ error() }}</div>
+    }
+  </div>
+  <div class="dialog-footer">
+    <button class="btn" [disabled]="busy()" (click)="close()">{{ cancelText() }}</button
+    ><button
+      class="btn"
+      [class.btn-danger]="confirmationType() === 'danger'"
+      [class.btn-primary]="confirmationType() === 'primary'"
+      [disabled]="busy()"
+      (click)="confirmed.emit()"
+    >
+      @if (busy()) { <app-button-loader /> Deleting... } @else { {{ confirmText() }} }
+    </button>
+  </div>
+</dialog>
