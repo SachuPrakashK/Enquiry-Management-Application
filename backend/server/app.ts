@@ -324,7 +324,10 @@ async function authRoute(request: Request, response: ServerResponse, action?: st
 export async function handleApi(request: Request, response: ServerResponse): Promise<void> {
   try {
     const url = new URL(request.url || '/', 'http://localhost');
-    const segments = url.pathname.split('/').filter(Boolean);
+    const rewrittenPath = url.searchParams.get('path');
+    const segments = rewrittenPath
+      ? ['api', ...rewrittenPath.split('/').filter(Boolean)]
+      : url.pathname.split('/').filter(Boolean);
     if (segments[0] === 'api') segments.shift();
     const [name, id, extra] = segments;
     if (name === 'health' && request.method === 'GET') {
@@ -473,6 +476,7 @@ export async function handleApi(request: Request, response: ServerResponse): Pro
         : error instanceof Error && 'status' in error && typeof error.status === 'number'
           ? error.status
           : 500;
+    if (status === 500) console.error(error);
     send(response, status, {
       message:
         status === 500
