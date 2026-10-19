@@ -1,18 +1,8 @@
 import { spawn } from 'node:child_process';
+const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const children = [
-  spawn(process.execPath, ['--watch', 'server/api.ts'], { stdio: 'inherit' }),
-  spawn(
-    process.execPath,
-    [
-      'node_modules/@angular/cli/bin/ng.js',
-      'serve',
-      '--proxy-config',
-      'proxy.conf.json',
-      '--host',
-      '127.0.0.1',
-    ],
-    { stdio: 'inherit' },
-  ),
+  spawn(npm, ['run', 'dev', '--workspace', 'backend'], { stdio: 'inherit' }),
+  spawn(npm, ['run', 'start', '--workspace', 'frontend', '--', '--host', '127.0.0.1'], { stdio: 'inherit' }),
 ];
 let stopping = false;
 function stop(code = 0) {

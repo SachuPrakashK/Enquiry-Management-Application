@@ -10,7 +10,11 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
   const router = inject(Router);
   const toast = inject(ToastService);
   const authenticationRequest = request.url.includes('/auth/');
-  return next(request).pipe(
+  const token = auth.accessToken();
+  const authenticatedRequest = token && !authenticationRequest
+    ? request.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
+    : request;
+  return next(authenticatedRequest).pipe(
     catchError((error: unknown) => {
       if (error instanceof HttpErrorResponse && error.status === 401 && !authenticationRequest) {
         auth.logout();

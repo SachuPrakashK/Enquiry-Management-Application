@@ -1,11 +1,10 @@
 import { createServer, request } from 'node:http';
 import { spawn } from 'node:child_process';
-import { copyFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { extname, resolve, sep } from 'node:path';
 mkdirSync('.test-output', { recursive: true });
-copyFileSync('db.json', '.test-output/browser-db.json');
-const api = spawn(process.execPath, ['server/api.ts'], {
-  env: { ...process.env, PORT: '3102', DB_FILE: resolve('.test-output/browser-db.json') },
+const api = spawn(process.execPath, ['--env-file-if-exists=../backend/.env', resolve('../backend/server/api.ts')], {
+  env: { ...process.env, PORT: '3102' },
   stdio: 'inherit',
 });
 const root = resolve('dist/enquiry-admin/browser');

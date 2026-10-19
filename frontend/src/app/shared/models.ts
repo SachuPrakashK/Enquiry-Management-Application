@@ -28,6 +28,7 @@ export interface AdminUser extends Entity {
 export interface AuthSession {
   userId: string;
   role: AdminRole;
+  token: string;
   expiresAt: number;
 }
 export interface Enquiry extends Entity {
