@@ -1,11 +1,11 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { catchError, map, Observable, of, switchMap, tap, throwError } from 'rxjs';
+import { catchError, map, Observable, of, switchMap, tap } from 'rxjs';
 import { AdminRole, AdminUser, AuthSession } from '../shared/models';
 import { API_BASE_URL } from './api.config';
 
 const sessionKey = 'enquiry-admin-session';
-const sessionDuration = 8 * 60 * 60 * 1000;
+type SignInResponse = { userId: string; role: AdminRole; token: string; expiresAt: number };
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -17,9 +17,10 @@ export class AuthService {
   readonly currentUser = this.authenticatedUser.asReadonly();
   readonly role = computed<AdminRole | null>(() => this.session()?.role ?? null);
   readonly userId = computed(() => this.session()?.userId ?? null);
+  readonly accessToken = computed(() => this.session()?.token ?? null);
 
-  signIn(identifier: string, password: string, remember: boolean): Observable<{ userId: string; role: AdminRole }> {
-    return this.http.post<{ userId: string; role: AdminRole }>(`${this.api}/auth/sign-in`, { identifier, password }).pipe(
+  signIn(identifier: string, password: string, remember: boolean): Observable<SignInResponse> {
+    return this.http.post<SignInResponse>(`${this.api}/auth/sign-in`, { identifier, password }).pipe(
       tap((identity) => this.storeSession(identity, remember)),
       switchMap((identity) =>
         this.http.get<AdminUser>(`${this.api}/adminUsers/${identity.userId}`).pipe(
@@ -59,23 +60,15 @@ export class AuthService {
   register(payload: { firstName: string; lastName: string; email: string; username: string; password: string }): Observable<AdminUser> {
     const email = payload.email.trim().toLowerCase();
     const username = payload.username.trim();
-    return this.http.get<AdminUser[]>(`${this.api}/adminUsers`).pipe(
-      switchMap((users) => {
-        if (users.some((user) => user.email.toLowerCase() === email))
-          return throwError(() => new Error('duplicate-email'));
-        if (users.some((user) => user.username.toLowerCase() === username.toLowerCase()))
-          return throwError(() => new Error('duplicate-username'));
-        return this.http.post<AdminUser>(`${this.api}/adminUsers`, {
+    return this.http.post<AdminUser>(`${this.api}/auth/register`, {
           firstName: payload.firstName.trim(),
           lastName: payload.lastName.trim(),
           email,
           username,
           password: payload.password,
           role: 'Admin',
-          isActive: true,
+          isActive: true
         });
-      }),
-    );
   }
 
   forgotPassword(email: string): Observable<void> {
@@ -109,6 +102,8 @@ export class AuthService {
         typeof session.userId !== 'string' ||
         !session.userId ||
         (session.role !== 'Super Admin' && session.role !== 'Admin') ||
+        typeof session.token !== 'string' ||
+        !session.token ||
         typeof session.expiresAt !== 'number' ||
         session.expiresAt <= Date.now()
       )
@@ -125,8 +120,8 @@ export class AuthService {
     return null;
   }
 
-  private storeSession(identity: { userId: string; role: AdminRole }, remember: boolean): void {
-    const session: AuthSession = { ...identity, expiresAt: Date.now() + sessionDuration };
+  private storeSession(identity: SignInResponse, remember: boolean): void {
+    const session: AuthSession = identity;
     localStorage.removeItem(sessionKey);
     sessionStorage.removeItem(sessionKey);
     (remember ? localStorage : sessionStorage).setItem(sessionKey, JSON.stringify(session));
