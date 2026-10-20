@@ -266,6 +266,19 @@ async function authRoute(request: Request, response: ServerResponse, action?: st
     const row = { ...payload, role: 'Admin', isActive: true };
     return transaction(async (client) => {
       await validate(row, 'adminUsers', client);
+      const duplicate = await client.query<{ email: string; username: string }>(
+        `SELECT email, username FROM admin_users
+         WHERE lower(email) = lower($1) OR lower(username) = lower($2)
+         LIMIT 1`,
+        [value(payload, 'email').trim(), value(payload, 'username').trim()],
+      );
+      const existing = duplicate.rows[0];
+      if (existing?.email.toLowerCase() === value(payload, 'email').trim().toLowerCase()) {
+        fail('An account with this email already exists.', 409);
+      }
+      if (existing?.username.toLowerCase() === value(payload, 'username').trim().toLowerCase()) {
+        fail('This username is already in use.', 409);
+      }
       const passwordHash = await hashPassword(value(payload, 'password'));
       const result = await client.query(
         `INSERT INTO admin_users (id, first_name, last_name, email, username, password_hash, role, is_active) VALUES ($1,$2,$3,lower($4),$5,$6,'Admin',true) RETURNING ${selections.adminUsers}`,
