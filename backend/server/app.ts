@@ -263,14 +263,16 @@ async function authRoute(request: Request, response: ServerResponse, action?: st
     required(payload, ['email', 'username']);
     const email = value(payload, 'email').trim().toLowerCase();
     const username = value(payload, 'username').trim().toLowerCase();
-    const matches = await query<{ email: string; username: string }>(
-      `SELECT email, username FROM admin_users
-       WHERE lower(email) = $1 OR lower(username) = $2`,
+    const result = await query<{ email_exists: boolean; username_exists: boolean }>(
+      `SELECT
+         EXISTS (SELECT 1 FROM admin_users WHERE lower(email) = $1) AS email_exists,
+         EXISTS (SELECT 1 FROM admin_users WHERE lower(username) = $2) AS username_exists`,
       [email, username],
     );
+    const availability = result.rows[0];
     return send(response, 200, {
-      emailAvailable: !matches.rows.some((item) => item.email.toLowerCase() === email),
-      usernameAvailable: !matches.rows.some((item) => item.username.toLowerCase() === username),
+      emailAvailable: !availability?.email_exists,
+      usernameAvailable: !availability?.username_exists,
     });
   }
   if (action === 'register') {
@@ -504,8 +506,11 @@ export async function handleApi(request: Request, response: ServerResponse): Pro
     });
   } catch (error: unknown) {
     const pgCode = error && typeof error === 'object' && 'code' in error ? String(error.code) : '';
+    const missingDatabase = error instanceof Error && error.message === 'DATABASE_URL is required.';
     const status =
-      pgCode === '23505'
+      missingDatabase
+        ? 503
+        : pgCode === '23505'
         ? 409
         : error instanceof Error && 'status' in error && typeof error.status === 'number'
           ? error.status
@@ -513,7 +518,9 @@ export async function handleApi(request: Request, response: ServerResponse): Pro
     if (status === 500) console.error(error);
     send(response, status, {
       message:
-        status === 500
+        missingDatabase
+          ? 'The database is not configured for this deployment. Add DATABASE_URL in Vercel and redeploy.'
+          : status === 500
           ? 'The server could not complete the request.'
           : pgCode === '23505'
             ? 'A record with these unique details already exists.'
