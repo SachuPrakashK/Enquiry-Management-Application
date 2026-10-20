@@ -10,6 +10,7 @@ export function errorMessage(error: unknown): string {
     if (body && typeof body === 'object' && 'message' in body && typeof body.message === 'string')
       return body.message;
   }
+  if (error instanceof Error && error.message) return error.message;
   return 'The request failed. Please try again.';
 }
 export function shouldShowErrorToast(error: unknown): boolean {

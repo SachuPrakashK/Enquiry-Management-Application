@@ -1,6 +1,6 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { catchError, map, Observable, of, switchMap, tap } from 'rxjs';
+import { catchError, map, Observable, of, switchMap, tap, throwError } from 'rxjs';
 import { AdminRole, AdminUser, AuthSession } from '../shared/models';
 import { API_BASE_URL } from './api.config';
 
@@ -60,7 +60,7 @@ export class AuthService {
   register(payload: { firstName: string; lastName: string; email: string; username: string; password: string }): Observable<AdminUser> {
     const email = payload.email.trim().toLowerCase();
     const username = payload.username.trim();
-    return this.http.post<AdminUser>(`${this.api}/auth/register`, {
+    const registration = {
           firstName: payload.firstName.trim(),
           lastName: payload.lastName.trim(),
           email,
@@ -68,7 +68,19 @@ export class AuthService {
           password: payload.password,
           role: 'Admin',
           isActive: true
-        });
+        };
+    return this.http.post<{ emailAvailable: boolean; usernameAvailable: boolean }>(
+      `${this.api}/auth/check-availability`,
+      { email, username },
+    ).pipe(
+      switchMap((availability) => {
+        if (!availability.emailAvailable)
+          return throwError(() => new Error('An account with this email already exists.'));
+        if (!availability.usernameAvailable)
+          return throwError(() => new Error('This username is already in use.'));
+        return this.http.post<AdminUser>(`${this.api}/auth/register`, registration);
+      }),
+    );
   }
 
   forgotPassword(email: string): Observable<void> {
