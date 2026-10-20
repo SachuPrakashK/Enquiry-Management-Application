@@ -88,7 +88,7 @@ The application supports Super Admin and Admin roles, remembered or session-only
 ## Deploying to Vercel
 
 1. Create a PostgreSQL database (for example, Neon through the Vercel Marketplace).
-2. Import the repository as a Vercel project with `backend` selected as its Root Directory.
+2. Import the repository as a Vercel project. The committed root adapter supports the repository root directly; selecting `backend` as the Root Directory is also supported.
 3. Add `DATABASE_URL`, `JWT_SECRET`, and `DATABASE_SSL=true` to the backend project environment variables.
 4. Run `npm run db:migrate` and, for an empty database, `npm run db:seed` locally with those environment variables available.
 5. Import the same repository as a second Vercel project with `frontend` selected as its Root Directory.
