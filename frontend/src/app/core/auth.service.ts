@@ -1,5 +1,5 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { catchError, map, Observable, of, switchMap, tap, throwError } from 'rxjs';
 import { AdminRole, AdminUser, AuthSession } from '../shared/models';
 import { API_BASE_URL } from './api.config';
@@ -69,16 +69,23 @@ export class AuthService {
           role: 'Admin',
           isActive: true
         };
+    const submitRegistration = () =>
+      this.http.post<AdminUser>(`${this.api}/auth/register`, registration);
     return this.http.post<{ emailAvailable: boolean; usernameAvailable: boolean }>(
       `${this.api}/auth/check-availability`,
       { email, username },
     ).pipe(
+      catchError((error: unknown) => {
+        if (error instanceof HttpErrorResponse && error.status >= 500) return of(null);
+        return throwError(() => error);
+      }),
       switchMap((availability) => {
+        if (!availability) return submitRegistration();
         if (!availability.emailAvailable)
           return throwError(() => new Error('An account with this email already exists.'));
         if (!availability.usernameAvailable)
           return throwError(() => new Error('This username is already in use.'));
-        return this.http.post<AdminUser>(`${this.api}/auth/register`, registration);
+        return submitRegistration();
       }),
     );
   }
