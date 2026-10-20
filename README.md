@@ -94,6 +94,8 @@ The application supports Super Admin and Admin roles, remembered or session-only
 5. Import the same repository as a second Vercel project with `frontend` selected as its Root Directory.
 6. Replace `YOUR-BACKEND` in `frontend/vercel.json` with the deployed backend project hostname before deploying the frontend.
 
+After deploying the backend, opening its root URL should return an API status response. Use `/api/health` to verify its PostgreSQL connection.
+
 Use a pooled PostgreSQL connection string for serverless deployments. Do not set `SEED_ADMIN_PASSWORD` permanently in Vercel after seeding.
 
 ## Build and tests
