@@ -1,12 +1,14 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
   "functions": {
-    "api/**/*.ts": {
+    "api/index.ts": {
       "includeFiles": "server/**",
       "maxDuration": 30
     }
   },
   "rewrites": [
+    { "source": "/", "destination": "/api" },
     { "source": "/api/:path*", "destination": "/api?path=:path*" }
   ]
 }

@@ -330,6 +330,13 @@ export async function handleApi(request: Request, response: ServerResponse): Pro
       : url.pathname.split('/').filter(Boolean);
     if (segments[0] === 'api') segments.shift();
     const [name, id, extra] = segments;
+    if (!name && request.method === 'GET') {
+      return send(response, 200, {
+        name: 'Inquiry Management API',
+        status: 'running',
+        health: '/api/health',
+      });
+    }
     if (name === 'health' && request.method === 'GET') {
       await query('SELECT 1');
       return send(response, 200, { status: 'ok' });
