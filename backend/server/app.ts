@@ -259,6 +259,20 @@ async function authRoute(request: Request, response: ServerResponse, action?: st
       ...signToken({ userId: user.id, role: user.role }),
     });
   }
+  if (action === 'check-availability') {
+    required(payload, ['email', 'username']);
+    const email = value(payload, 'email').trim().toLowerCase();
+    const username = value(payload, 'username').trim().toLowerCase();
+    const matches = await query<{ email: string; username: string }>(
+      `SELECT email, username FROM admin_users
+       WHERE lower(email) = $1 OR lower(username) = $2`,
+      [email, username],
+    );
+    return send(response, 200, {
+      emailAvailable: !matches.rows.some((item) => item.email.toLowerCase() === email),
+      usernameAvailable: !matches.rows.some((item) => item.username.toLowerCase() === username),
+    });
+  }
   if (action === 'register') {
     required(payload, ['firstName', 'lastName', 'email', 'username', 'password']);
     if (!validPassword(value(payload, 'password')))
