@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "vercel-build": "npm run typecheck",
     "start": "node --env-file-if-exists=.env server/api.ts",
     "dev": "node --env-file-if-exists=.env --watch server/api.ts",
     "db:migrate": "node --env-file-if-exists=.env server/migrate.ts",
