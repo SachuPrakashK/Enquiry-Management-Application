@@ -83,7 +83,7 @@ package.json               Workspace-level development commands
 
 ## Authentication
 
-The application supports Super Admin and Admin roles, remembered or session-only login state, server-side authorization, registration, and expiring one-time password-reset tokens. Configure an email provider before production use to deliver the reset link; in non-production mode the API prints the generated token to the server console.
+The application supports Super Admin and Admin roles, remembered or session-only login state, server-side authorization, registration, and expiring one-time password-reset tokens. Production reset emails are delivered through Resend. Configure `APP_URL`, `RESEND_API_KEY`, and `EMAIL_FROM`; the sender must use a domain verified in Resend. Without an API key, non-production mode prints the generated token to the server console.
 
 To reset an existing active Super Admin password, configure `DATABASE_URL`, then temporarily set `SUPER_ADMIN_IDENTIFIER` (username or email) and `RESET_ADMIN_PASSWORD` in `backend/.env`. Run:
 
@@ -97,7 +97,7 @@ The new password must contain at least eight characters with uppercase, lowercas
 
 1. Create a PostgreSQL database (for example, Neon through the Vercel Marketplace).
 2. Import the repository as a Vercel project and leave the Root Directory at the repository root. This deploys the Angular frontend and Node.js API together on one domain.
-3. Add `DATABASE_URL`, `JWT_SECRET`, and `DATABASE_SSL=true` to the project environment variables.
+3. Add `DATABASE_URL`, `JWT_SECRET`, `DATABASE_SSL=true`, `APP_URL`, `RESEND_API_KEY`, and `EMAIL_FROM` to the project environment variables.
 4. Run `npm run db:migrate` and, for an empty database, `npm run db:seed` locally with those environment variables available.
 5. Deploy the project. Application routes are served by Angular and `/api/*` routes are handled by the serverless backend.
 
@@ -127,4 +127,4 @@ The interface uses Inter, a slate and teal theme, a shared outline SVG icon syst
 
 ## Production notes
 
-Profile images are currently stored as data URLs in PostgreSQL for compatibility with the existing UI. For heavier use, move them to object storage. Password reset token generation is implemented, but production email delivery must be connected to your chosen transactional email service.
+Profile images are currently stored as data URLs in PostgreSQL for compatibility with the existing UI. For heavier use, move them to object storage.

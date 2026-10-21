@@ -1,9 +1,9 @@
-import { ChangeDetectionStrategy, Component, ElementRef, HostListener, computed, inject, input, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, HostListener, OnDestroy, computed, inject, input, signal, viewChild } from '@angular/core';
 import { SvgIcon } from './svg-icon';
 import { ActionMenuService } from './action-menu.service';
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush, selector: 'app-action-menu', imports: [SvgIcon], templateUrl: './action-menu.html' })
-export class ActionMenu {
+export class ActionMenu implements OnDestroy {
   private readonly menus = inject(ActionMenuService);
   private readonly host = inject(ElementRef<HTMLElement>);
   private readonly trigger = viewChild.required<ElementRef<HTMLButtonElement>>('trigger');
@@ -24,6 +24,7 @@ export class ActionMenu {
     this.menus.openId.set(this.id());
   }
   close(): void { if (this.open()) this.menus.openId.set(null); }
+  ngOnDestroy(): void { this.close(); }
   select(): void { this.close(); }
   @HostListener('document:click', ['$event'])
   outside(event: Event): void { if (this.open() && !this.host.nativeElement.contains(event.target as Node)) this.close(); }

@@ -76,6 +76,9 @@ test('authentication guard, validation, refresh, logout, and fallback route', as
   await expect(page.getByRole('heading', { name: 'Dashboard', exact: true })).toBeVisible();
   await openProfileMenu(page);
   await page.getByRole('menuitem', { name: 'Logout' }).click();
+  await expect(page.getByRole('menu')).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByRole('menu')).toHaveCount(0);
   await page.goto('/admin/statuses/create');
   await expect(page).toHaveURL(/\/auth\/sign-in$/);
   await page.goto('/missing-page');

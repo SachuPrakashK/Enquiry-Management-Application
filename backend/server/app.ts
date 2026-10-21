@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { PoolClient, QueryResultRow } from 'pg';
 import { query, transaction } from './database.ts';
+import { sendPasswordResetEmail } from './email.ts';
 import {
   hashPassword,
   hashToken,
@@ -313,18 +314,39 @@ async function authRoute(request: Request, response: ServerResponse, action?: st
   if (action === 'forgot-password') {
     const email = value(payload, 'email').trim().toLowerCase();
     const user = (
-      await query('SELECT id FROM admin_users WHERE lower(email) = $1 AND is_active = true', [
-        email,
-      ])
+      await query<{ id: string; first_name: string }>(
+        'SELECT id, first_name FROM admin_users WHERE lower(email) = $1 AND is_active = true',
+        [email],
+      )
     ).rows[0];
     if (user) {
       const token = randomToken();
+      const tokenId = randomUUID();
       await query(
         "INSERT INTO password_reset_tokens (id, user_id, token_hash, expires_at) VALUES ($1,$2,$3,now() + interval '30 minutes')",
-        [randomUUID(), user['id'], hashToken(token)],
+        [tokenId, user.id, hashToken(token)],
       );
-      if (process.env['NODE_ENV'] !== 'production')
+      if (process.env['NODE_ENV'] !== 'production' && !process.env['RESEND_API_KEY']) {
         process.stdout.write(`Password reset token for ${email}: ${token}\n`);
+      } else {
+        const applicationUrl = process.env['APP_URL'];
+        if (!applicationUrl) {
+          await query('DELETE FROM password_reset_tokens WHERE id = $1', [tokenId]);
+          fail('Password-reset email is not configured.', 503);
+        }
+        const resetUrl = new URL('/auth/reset-password', applicationUrl);
+        resetUrl.searchParams.set('token', token);
+        try {
+          await sendPasswordResetEmail({
+            email,
+            firstName: user.first_name,
+            resetUrl: resetUrl.toString(),
+          });
+        } catch (error) {
+          await query('DELETE FROM password_reset_tokens WHERE id = $1', [tokenId]);
+          throw error;
+        }
+      }
     }
     return send(response, 204);
   }
