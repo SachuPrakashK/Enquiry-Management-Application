@@ -85,6 +85,14 @@ package.json               Workspace-level development commands
 
 The application supports Super Admin and Admin roles, remembered or session-only login state, server-side authorization, registration, and expiring one-time password-reset tokens. Configure an email provider before production use to deliver the reset link; in non-production mode the API prints the generated token to the server console.
 
+To reset an existing active Super Admin password, configure `DATABASE_URL`, then temporarily set `SUPER_ADMIN_IDENTIFIER` (username or email) and `RESET_ADMIN_PASSWORD` in `backend/.env`. Run:
+
+```bash
+npm run db:reset-super-admin
+```
+
+The new password must contain at least eight characters with uppercase, lowercase, number, and special-character content. Remove `RESET_ADMIN_PASSWORD` immediately after the command completes. The reset command cannot create or promote accounts and never prints the password.
+
 ## Deploying to Vercel
 
 1. Create a PostgreSQL database (for example, Neon through the Vercel Marketplace).

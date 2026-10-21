@@ -378,7 +378,10 @@ export async function handleApi(request: Request, response: ServerResponse): Pro
       return send(response, 404, { message: 'Collection not found.' });
     const collection = name as Collection;
     if (identity.role !== 'Super Admin') {
-      if (collection === 'statuses' || collection === 'categories')
+      if (
+        (collection === 'statuses' || collection === 'categories') &&
+        request.method !== 'GET'
+      )
         fail('You do not have permission to perform this action.', 403);
       if (
         collection === 'adminUsers' &&
