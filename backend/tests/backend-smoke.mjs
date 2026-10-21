@@ -25,6 +25,11 @@ assert.equal(registration.status, 201);
 const regular = await request('auth/sign-in', 'POST', { identifier: `api.${suffix}`, password: 'StrongPass1!' });
 assert.equal(regular.status, 200);
 assert.equal((await request(`adminUsers/${registration.body.id}`, 'GET', undefined, regular.body.token)).status, 200);
-assert.equal((await request('statuses', 'GET', undefined, regular.body.token)).status, 403);
+assert.equal((await request('statuses', 'GET', undefined, regular.body.token)).status, 200);
+assert.equal((await request('categories', 'GET', undefined, regular.body.token)).status, 200);
+assert.equal(
+  (await request('statuses', 'POST', { name: 'Forbidden', code: `FORBIDDEN_${Date.now()}`, color: '#000000', description: '', isActive: true }, regular.body.token)).status,
+  403,
+);
 assert.equal((await request(`adminUsers/${registration.body.id}`, 'DELETE', undefined, admin.body.token)).status, 204);
 process.stdout.write('Backend smoke test passed.\n');
