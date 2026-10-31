@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { PoolClient, QueryResultRow } from 'pg';
 import { query, transaction } from './database.ts';
-import { sendPasswordResetEmail } from './email.ts';
+import { emailConfigured, sendPasswordResetEmail } from './email.ts';
 import {
   hashPassword,
   hashToken,
@@ -326,7 +326,7 @@ async function authRoute(request: Request, response: ServerResponse, action?: st
         "INSERT INTO password_reset_tokens (id, user_id, token_hash, expires_at) VALUES ($1,$2,$3,now() + interval '30 minutes')",
         [tokenId, user.id, hashToken(token)],
       );
-      if (process.env['NODE_ENV'] !== 'production' && !process.env['RESEND_API_KEY']) {
+      if (process.env['NODE_ENV'] !== 'production' && !emailConfigured()) {
         process.stdout.write(`Password reset token for ${email}: ${token}\n`);
       } else {
         const applicationUrl = process.env['APP_URL'];
